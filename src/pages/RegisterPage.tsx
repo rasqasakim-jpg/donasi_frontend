@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { Loader2, UserPlus } from "lucide-react"
+import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import api from "../api/axios"
 import Button from "../components/common/Button"
@@ -14,20 +14,23 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const submitRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
     setError("")
+
     const form = new FormData(event.currentTarget)
+    const email = String(form.get("email") || "")
 
     try {
       await api.post("/auth/register", {
         name: String(form.get("name") || ""),
-        email: String(form.get("email") || ""),
+        email,
         password: String(form.get("password") || "")
       })
-      navigate("/login", { replace: true })
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`)
     } catch (registerError) {
       setError(getErrorMessage(registerError))
     } finally {
@@ -58,7 +61,17 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="text-sm font-bold text-slate-700" htmlFor="password">Password</label>
-            <input className="mt-2 w-full rounded-2xl border border-emerald-100 px-4 py-3 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" id="password" minLength={6} name="password" required type="password" />
+            <div className="relative mt-2">
+              <input className="w-full rounded-2xl border border-emerald-100 px-4 py-3 pr-12 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" id="password" minLength={6} name="password" required type={showPassword ? "text" : "password"} />
+              <button
+                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                onClick={() => setShowPassword((visible) => !visible)}
+                type="button"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           {error && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</p>}
           <Button className="w-full" disabled={loading} type="submit">

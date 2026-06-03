@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { Loader2, Lock } from "lucide-react"
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import api from "../api/axios"
 import Button from "../components/common/Button"
@@ -17,6 +17,7 @@ export default function LoginPage() {
   const location = useLocation()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const redirectTo = (location.state as { redirectTo?: string } | null)?.redirectTo || "/dashboard"
 
@@ -24,22 +25,35 @@ export default function LoginPage() {
     event.preventDefault()
     setLoading(true)
     setError("")
+
     const form = new FormData(event.currentTarget)
+    const email = String(form.get("email") || "")
+    const password = String(form.get("password") || "")
 
     try {
       const response = await api.post<AuthResponse>("/auth/login", {
-        email: String(form.get("email") || ""),
-        password: String(form.get("password") || "")
+        email,
+        password
       })
+
       const token = response.data.data?.token || response.data.token
       const user = response.data.data?.user || response.data.user
 
       if (!token) throw new Error("Token tidak ditemukan dari backend.")
+
       setToken(token)
       if (user) setUser(user)
+
       navigate(redirectTo, { replace: true })
     } catch (loginError) {
-      setError(getErrorMessage(loginError))
+      const message = getErrorMessage(loginError)
+      setError(message)
+
+      if (message.toLowerCase().includes("verify")) {
+        setTimeout(() => {
+          navigate(`/verify-otp?email=${encodeURIComponent(email)}`)
+        }, 1000)
+      }
     } finally {
       setLoading(false)
     }
@@ -64,7 +78,17 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="text-sm font-bold text-slate-700" htmlFor="password">Password</label>
-            <input className="mt-2 w-full rounded-2xl border border-emerald-100 px-4 py-3 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" id="password" name="password" required type="password" />
+            <div className="relative mt-2">
+              <input className="w-full rounded-2xl border border-emerald-100 px-4 py-3 pr-12 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" id="password" name="password" required type={showPassword ? "text" : "password"} />
+              <button
+                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                onClick={() => setShowPassword((visible) => !visible)}
+                type="button"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           {error && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</p>}
           <Button className="w-full" disabled={loading} type="submit">

@@ -13,10 +13,10 @@ export default function ContactPage() {
         />
         <div className="grid gap-4 text-slate-600">
           <div className="flex items-center gap-3 rounded-3xl bg-white p-5 ring-1 ring-emerald-100">
-            <Mail className="text-emerald-600" /> halo@donasikita.id
+            <Mail className="text-emerald-600" /> rasqasakim@gmail.com
           </div>
           <div className="flex items-center gap-3 rounded-3xl bg-white p-5 ring-1 ring-emerald-100">
-            <Phone className="text-emerald-600" /> +62 812 0000 0000
+            <Phone className="text-emerald-600" /> +6281334362970
           </div>
           <div className="flex items-center gap-3 rounded-3xl bg-white p-5 ring-1 ring-emerald-100">
             <MapPin className="text-emerald-600" /> Indonesia
